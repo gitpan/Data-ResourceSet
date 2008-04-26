@@ -1,4 +1,4 @@
-# $Id: /mirror/coderepos/lang/perl/Data-ResourceSet/trunk/lib/Data/ResourceSet.pm 52166 2008-04-25T23:01:23.133027Z daisuke  $
+# $Id: /mirror/coderepos/lang/perl/Data-ResourceSet/trunk/lib/Data/ResourceSet.pm 52168 2008-04-26T01:15:21.271673Z daisuke  $
 
 package Data::ResourceSet;
 use strict;
@@ -7,7 +7,7 @@ use base qw(Class::Accessor::Fast Class::Data::ConfigHash);
 use Class::Inspector;
 use UNIVERSAL::require;
 
-our $VERSION = '0.00001';
+our $VERSION = '0.00002';
 
 __PACKAGE__->mk_accessors($_) for
     qw(resources resources_config);
@@ -103,7 +103,7 @@ Data::ResourceSet - A Bundle Of Resources
 
 =head1 SYNOPSIS
 
-  my $cluster = WiFiGadgets::ResourceSet->new(
+  my $cluster = Data::ResourceSet->new(
     resources => {
       schema => {
         name1 => $dbic_schema1
