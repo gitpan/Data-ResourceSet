@@ -1,23 +1,22 @@
-# $Id: /mirror/coderepos/lang/perl/Data-ResourceSet/trunk/lib/Data/ResourceSet.pm 52168 2008-04-26T01:15:21.271673Z daisuke  $
+# $Id: /mirror/coderepos/lang/perl/Data-ResourceSet/trunk/lib/Data/ResourceSet.pm 54071 2008-05-19T06:52:45.149433Z daisuke  $
 
 package Data::ResourceSet;
-use strict;
-use warnings;
-use base qw(Class::Accessor::Fast Class::Data::ConfigHash);
-use Class::Inspector;
-use UNIVERSAL::require;
+use Moose;
 
-our $VERSION = '0.00002';
+has 'resources' => (
+    is       => 'rw',
+    isa      => 'HashRef',
+    required => 1,
+    default  => sub { +{} }
+);
 
-__PACKAGE__->mk_accessors($_) for
-    qw(resources resources_config);
+has 'resources_config' => (
+    is       => 'rw',
+    isa      => 'HashRef',
+    default  => sub { +{} },
+);
 
-sub new
-{
-    my $class = shift;
-    my $args  = shift;
-    $class->SUPER::new({ resources => {}, resources_config => {}, %$args });
-}
+our $VERSION = '0.00003';
 
 sub resource
 {
@@ -53,7 +52,8 @@ sub find_config
     }
 
     # find a per-package config
-    $config = $self->config('resources')->{$type}->{$name};
+    $config = $self->can('config') ?
+        $self->config('resources')->{$type}->{$name} : ();
     if ($config) {
         return $config;
     }
@@ -61,25 +61,17 @@ sub find_config
     return ();
 }
 
-sub resolve_resource_module
-{
-    my ($self, $config) = @_;
-
-    my $module = $config->{module};
-    if ($module =~ s/^\+//) {
-        return $module;
-    }
-
-    return join('::', ref($self), $module);
-}
-
 sub construct_resource
 {
     my ($self, $name, $config, @args) = @_;
 
-    my $pkg = $self->resolve_resource_module($config);
-    if (! Class::Inspector->loaded($pkg)) {
-        $pkg->require or die;
+    my $pkg         = $config->{module};
+    if ($pkg !~ s/^\+//) {
+        $pkg = join('::', blessed $self, $pkg);
+    }
+    if (! Class::MOP::is_class_loaded($pkg)) {
+        eval "require $pkg";
+        die if $@;
     }
 
     my $constructor = $config->{constructor} || 'new';
@@ -276,10 +268,6 @@ Constructs a resource by its config
 =head2 find_config
 
 Find the configuration for a resource
-
-=head2 resolve_resource_module
-
-Resolve the module name
 
 =head1 AUTHOR
 

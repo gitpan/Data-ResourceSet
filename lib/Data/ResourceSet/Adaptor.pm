@@ -1,10 +1,27 @@
-# $Id: /mirror/coderepos/lang/perl/Data-ResourceSet/trunk/lib/Data/ResourceSet/Adaptor.pm 52164 2008-04-25T22:52:09.612590Z daisuke  $
+# $Id: /mirror/coderepos/lang/perl/Data-ResourceSet/trunk/lib/Data/ResourceSet/Adaptor.pm 54068 2008-05-19T05:50:37.210926Z daisuke  $
 
 package Data::ResourceSet::Adaptor;
-use strict;
-use warnings;
-use base qw(Class::Accessor::Fast);
-__PACKAGE__->mk_accessors($_) for qw(constructor class args);
+use Moose;
+
+has 'constructor' => (
+    is       => 'rw',
+    isa      => 'Str',
+    required => 1,
+    default  => 'new'
+);
+
+has 'class' => (
+    is       => 'rw',
+    isa      => 'Str',
+    required => 1,
+);
+
+has 'args' => (
+    is       => 'rw',
+    isa      => 'HashRef',
+    required => 1,
+    default  => sub { +{} }
+);
 
 sub ACCEPT_CONTEXT
 {
@@ -15,10 +32,10 @@ sub ACCEPT_CONTEXT
 sub _create_instance {
     my ($self, $c, @args) = @_;
 
-    my $constructor = $self->constructor || 'new';
+    my $constructor = $self->constructor;
     my $args = $self->prepare_arguments($c, @args);
     my $adapted_class = $self->class;
-    if (! Class::Inspector->loaded($adapted_class)) {
+    if (! Class::MOP::is_class_loaded( $adapted_class ) ) {
         $adapted_class->require or die;
     }
 
